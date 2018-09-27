@@ -59,7 +59,12 @@ class FNISTool(mobase.IPluginTool):
         return mobase.VersionInfo(1, 0, 0, mobase.ReleaseType.prealpha)
 
     def isActive(self):
-        return True
+        supportedGames = {
+            "Skyrim",
+            "Skyrim Special Edition",
+            "Skyrim VR"
+        }
+        return self.__organizer.managedGame().gameName() in supportedGames
 
     def settings(self):
         return [
