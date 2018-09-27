@@ -92,6 +92,8 @@ class FNISTool(mobase.IPluginTool):
     def display(self):
         args = []
         redirectOutput = True
+        outputModName = None
+
         try:
             redirectOutput = self.__getRedirectOutput()
         except UnknownOutputPreferenceException:
@@ -99,18 +101,32 @@ class FNISTool(mobase.IPluginTool):
             return
         if redirectOutput:
             try:
-                args.append('RedirectFiles="' + self.__getOutputPath() + '"')
+                outputPath = self.__getOutputPath()
+                args.append('RedirectFiles="' + outputPath + '"')
+                outputModName = pathlib.Path(outputPath).name
             except UnknownOutputPreferenceException:
                 QMessageBox.critical(self.__parentWidget, self.__tr("Output mod not set"), self.__tr("The mod to output to was not specifed. The tool will now exit."))
                 return
         args.append('InstantExecute=1')
+
         try:
             executable = self.__getFNISPath()
         except FNISMissingException:
             QMessageBox.critical(self.__parentWidget, self.__tr("FNIS path not specified"), self.__tr("The path to GenerateFNISforUsers.exe wasn't specified. The tool will now exit."))
             return
+
+        if redirectOutput:
+            # Disable the output mod as USVFS isn't designed to cope with its input directories being modified
+            self.__organizer.modList().setActive(outputModName, False)
+
         handle = self.__organizer.startApplication(executable, args)
         result, exitCode = self.__organizer.waitForApplication(handle)
+
+        if redirectOutput:
+            # Enable the output mod
+            self.__organizer.modList().setActive(outputModName, True)
+            # Ensure the 'No valid game data' message goes away
+            self.__organizer.modDataChanged(self.__organizer.getMod(outputModName))
     
     def __tr(self, str):
         return QCoreApplication.translate("FNISTool", str)
