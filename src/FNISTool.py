@@ -138,16 +138,18 @@ class FNISTool(mobase.IPluginTool):
     
     def __getOutputPath(self):
         path = self.__organizer.pluginSetting(self.name(), "output-path")
+        pathlibPath = pathlib.Path(path)
         modDirectory = self.__getModDirectory()
-        isAMod = pathlib.Path(path).parent.samefile(modDirectory)
-        if not os.path.isdir(path) or not isAMod:
+        isAMod = pathlibPath.parent.samefile(modDirectory)
+        if not pathlibPath.is_dir() or not isAMod:
             QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, and you can create one if you do not have one already. FNIS will delete any existing contents of this directory when it is run, so do not choose a mod you use for anything else. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
-            while not os.path.isdir(path) or not isAMod:
+            while not pathlibPath.is_dir() or not isAMod:
                 path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose an output mod"), str(modDirectory), QFileDialog.ShowDirsOnly)
-                if not os.path.isdir(path):
+                pathlibPath = pathlib.Path(path)
+                if not pathlibPath.is_dir():
                     # cancel was pressed
                     raise UnknownOutputPreferenceException
-                isAMod = pathlib.Path(path).parent.samefile(modDirectory)
+                isAMod = pathlibPath.parent.samefile(modDirectory)
                 if not isAMod:
                     QMessageBox.information(self.__parentWidget, self.__tr("Not a mod..."), self.__tr("The selected directory is not a Mod Organizer managed mod. Please choose a directory within the mods directory."))
             # The user may have created a new mod in the MO mods directory, so we must trigger a refresh
