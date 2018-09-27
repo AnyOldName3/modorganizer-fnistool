@@ -16,7 +16,7 @@ import os
 import pathlib
 import sys
 
-from PyQt5.QtCore import QCoreApplication, qCritical, qDebug, QFileInfo
+from PyQt5.QtCore import QCoreApplication, qCritical, QFileInfo
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFileDialog, QFileSystemModel, QMessageBox
 
@@ -111,9 +111,6 @@ class FNISTool(mobase.IPluginTool):
             return
         handle = self.__organizer.startApplication(executable, args)
         result, exitCode = self.__organizer.waitForApplication(handle)
-        qDebug(str(handle))
-        qDebug(str(result))
-        qDebug(str(exitCode))
     
     def __tr(self, str):
         return QCoreApplication.translate("FNISTool", str)
