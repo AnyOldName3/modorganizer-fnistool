@@ -141,48 +141,48 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="FNISTool.py" line="146"/>
+        <location filename="FNISTool.py" line="147"/>
         <source>Choose an output mod</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="FNISTool.py" line="144"/>
-        <source>Please choose an output mod for Fore&apos;s New Idles in Skyrim. This must be a directory in Mod Organizer&apos;s mods directory, and you can create one if you do not have one already. FNIS will delete any existing contents of this directory when it is run, so do not choose a mod you use for anything else. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="FNISTool.py" line="152"/>
+        <location filename="FNISTool.py" line="154"/>
         <source>Not a mod...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="FNISTool.py" line="152"/>
+        <location filename="FNISTool.py" line="154"/>
         <source>The selected directory is not a Mod Organizer managed mod. Please choose a directory within the mods directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="FNISTool.py" line="167"/>
+        <location filename="FNISTool.py" line="172"/>
         <source>Find FNIS</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="FNISTool.py" line="167"/>
+        <location filename="FNISTool.py" line="172"/>
         <source>Fore&apos;s New Idles in Skyrim can&apos;t be found using the location saved in Mod Organizer&apos;s settings. Please find GenerateFNISforUsers.exe in the file picker. FNIS must be visible within the VFS, so choose an installation either within the game&apos;s data directory or within a mod folder. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="FNISTool.py" line="169"/>
+        <location filename="FNISTool.py" line="174"/>
         <source>Locate GenerateFNISforUsers.exe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="FNISTool.py" line="181"/>
+        <location filename="FNISTool.py" line="186"/>
         <source>Not a compatible location...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="FNISTool.py" line="181"/>
+        <location filename="FNISTool.py" line="186"/>
         <source>Fore&apos;s New Idles in Skyrim only works when within the VFS, so must be installed to the game&apos;s data directory or within a mod folder. Please select a different FNIS installation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="FNISTool.py" line="145"/>
+        <source>Please choose an output mod for Fore&apos;s New Idles in Skyrim. This must be a directory in Mod Organizer&apos;s mods directory, and you can create one if you do not have one already. This mod will not be available to the VFS when FNIS is run, so do not choose a mod you use for anything else. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -16,7 +16,7 @@ import os
 import pathlib
 import sys
 
-from PyQt5.QtCore import QCoreApplication, qCritical, qDebug, QFileInfo
+from PyQt5.QtCore import QCoreApplication, qCritical, QFileInfo
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFileDialog, QFileSystemModel, QMessageBox
 
@@ -59,7 +59,12 @@ class FNISTool(mobase.IPluginTool):
         return mobase.VersionInfo(1, 0, 0, mobase.ReleaseType.prealpha)
 
     def isActive(self):
-        return True
+        supportedGames = {
+            "Skyrim",
+            "Skyrim Special Edition",
+            "Skyrim VR"
+        }
+        return self.__organizer.managedGame().gameName() in supportedGames
 
     def settings(self):
         return [
@@ -92,6 +97,8 @@ class FNISTool(mobase.IPluginTool):
     def display(self):
         args = []
         redirectOutput = True
+        outputModName = None
+
         try:
             redirectOutput = self.__getRedirectOutput()
         except UnknownOutputPreferenceException:
@@ -99,21 +106,32 @@ class FNISTool(mobase.IPluginTool):
             return
         if redirectOutput:
             try:
-                args.append('RedirectFiles="' + self.__getOutputPath() + '"')
+                outputPath = self.__getOutputPath()
+                args.append('RedirectFiles="' + outputPath + '"')
+                outputModName = pathlib.Path(outputPath).name
             except UnknownOutputPreferenceException:
                 QMessageBox.critical(self.__parentWidget, self.__tr("Output mod not set"), self.__tr("The mod to output to was not specifed. The tool will now exit."))
                 return
         args.append('InstantExecute=1')
+
         try:
             executable = self.__getFNISPath()
         except FNISMissingException:
             QMessageBox.critical(self.__parentWidget, self.__tr("FNIS path not specified"), self.__tr("The path to GenerateFNISforUsers.exe wasn't specified. The tool will now exit."))
             return
+
+        if redirectOutput:
+            # Disable the output mod as USVFS isn't designed to cope with its input directories being modified
+            self.__organizer.modList().setActive(outputModName, False)
+
         handle = self.__organizer.startApplication(executable, args)
         result, exitCode = self.__organizer.waitForApplication(handle)
-        qDebug(str(handle))
-        qDebug(str(result))
-        qDebug(str(exitCode))
+
+        if redirectOutput:
+            # Enable the output mod
+            self.__organizer.modList().setActive(outputModName, True)
+            # Ensure the 'No valid game data' message goes away
+            self.__organizer.modDataChanged(self.__organizer.getMod(outputModName))
     
     def __tr(self, str):
         return QCoreApplication.translate("FNISTool", str)
@@ -138,18 +156,33 @@ class FNISTool(mobase.IPluginTool):
     
     def __getOutputPath(self):
         path = self.__organizer.pluginSetting(self.name(), "output-path")
+        pathlibPath = pathlib.Path(path)
         modDirectory = self.__getModDirectory()
-        isAMod = pathlib.Path(path).parent.samefile(modDirectory)
-        if not os.path.isdir(path) or not isAMod:
-            QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, and you can create one if you do not have one already. FNIS will delete any existing contents of this directory when it is run, so do not choose a mod you use for anything else. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
-            while not os.path.isdir(path) or not isAMod:
+        isAMod = pathlibPath.parent.samefile(modDirectory)
+        if not pathlibPath.is_dir() or not isAMod:
+            QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, and you can create one if you do not have one already. This mod will not be available to the VFS when FNIS is run, so do not choose a mod you use for anything else. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
+            while not pathlibPath.is_dir() or not isAMod:
                 path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose an output mod"), str(modDirectory), QFileDialog.ShowDirsOnly)
-                if not os.path.isdir(path):
+                pathlibPath = pathlib.Path(path)
+                if not pathlibPath.is_dir():
                     # cancel was pressed
                     raise UnknownOutputPreferenceException
-                isAMod = pathlib.Path(path).parent.samefile(modDirectory)
+                isAMod = pathlibPath.parent.samefile(modDirectory)
                 if not isAMod:
                     QMessageBox.information(self.__parentWidget, self.__tr("Not a mod..."), self.__tr("The selected directory is not a Mod Organizer managed mod. Please choose a directory within the mods directory."))
+                    continue
+                empty = True
+                for item in pathlibPath.iterdir():
+                    if item.name != "meta.ini":
+                        empty = False
+                        break
+                if not empty:
+                    if QMessageBox.question(self.__parentWidget, self.__tr("Mod not empty"), self.__tr("The selected mod already contains files. Are you sure want to use it as the output mod?"), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No)) == QMessageBox.Yes:
+                        # Proceed normally - the user is happy
+                        pass
+                    else:
+                        # Restart outer loop - the user wants to pick again
+                        isAMod = False
             # The user may have created a new mod in the MO mods directory, so we must trigger a refresh
             self.__organizer.refreshModList()
             self.__organizer.setPluginSetting(self.name(), "output-path", path)
