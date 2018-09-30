@@ -27,6 +27,10 @@ class FNISMissingException(Exception):
     """Thrown if GenerateFNISforUsers.exe path can't be found"""
     pass
 
+class FNISInactiveException(Exception):
+    """Thrown if GenerateFNISforUsers.exe is installed to an inactive mod"""
+    pass
+
 class UnknownOutputPreferenceException(Exception):
     """Thrown if the user hasn't specified whether to output to a separate mod"""
     pass
@@ -118,6 +122,9 @@ class FNISTool(mobase.IPluginTool):
             executable = self.__getFNISPath()
         except FNISMissingException:
             QMessageBox.critical(self.__parentWidget, self.__tr("FNIS path not specified"), self.__tr("The path to GenerateFNISforUsers.exe wasn't specified. The tool will now exit."))
+            return
+        except FNISInactiveException:
+            # Error has already been displayed, just quit
             return
 
         if redirectOutput:
@@ -212,6 +219,20 @@ class FNISTool(mobase.IPluginTool):
                     break
                 else:
                     QMessageBox.information(self.__parentWidget, self.__tr("Not a compatible location..."), self.__tr("Fore's New Idles in Skyrim only works when within the VFS, so must be installed to the game's data directory or within a mod folder. Please select a different FNIS installation."))
+        # Check the mod is actually enabled
+        if self.__withinDirectory(pathlibPath, modDirectory):
+            fnisModName = None
+            for path in pathlibPath.parents:
+                if path.parent.samefile(modDirectory):
+                    fnisModName = path.name
+                    break
+            if (self.__organizer.modList().state(fnisModName) & 0x2) == 0:
+                # FNIS is installed to an inactive mod
+                result = QMessageBox.question(self.__parentWidget, self.__tr("FNIS mod deactivated"), self.__tr("Fore's New Idles in Skyrim is installed to an inactive mod. Press OK to activate it or Cancel to quit the tool"), QMessageBox.StandardButtons(QMessageBox.Ok | QMessageBox.Cancel))
+                if result == QMessageBox.Ok:
+                    self.__organizer.modList().setActive(fnisModName, True)
+                else:
+                    raise FNISInactiveException
         return savedPath
     
     def __getModDirectory(self):
