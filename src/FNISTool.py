@@ -36,7 +36,7 @@ class UnknownOutputPreferenceException(Exception):
     pass
 
 class FNISTool(mobase.IPluginTool):
-    
+
     def __init__(self):
         super(FNISTool, self).__init__()
         self.__organizer = None
@@ -78,7 +78,7 @@ class FNISTool(mobase.IPluginTool):
             ]
 
     def displayName(self):
-        return self.__tr("Run FNIS")
+        return self.__tr("FNIS/Run FNIS")
 
     def tooltip(self):
         return self.__tr("Runs GenerateFNISforUsers.exe so the game can load custom animations.")
@@ -97,7 +97,7 @@ class FNISTool(mobase.IPluginTool):
 
     def setParentWidget(self, widget):
         self.__parentWidget = widget
-    
+
     def display(self):
         args = []
         redirectOutput = True
@@ -139,10 +139,10 @@ class FNISTool(mobase.IPluginTool):
             self.__organizer.modList().setActive(outputModName, True)
             # Ensure the 'No valid game data' message goes away
             self.__organizer.modDataChanged(self.__organizer.getMod(outputModName))
-    
+
     def __tr(self, str):
         return QCoreApplication.translate("FNISTool", str)
-    
+
     def __getRedirectOutput(self):
         redirectOutput = self.__organizer.pluginSetting(self.name(), "output-to-mod")
         if redirectOutput == "":
@@ -156,11 +156,11 @@ class FNISTool(mobase.IPluginTool):
             else:
                 # the user pressed cancel
                 raise UnknownOutputPreferenceException
-            
+
             redirectOutput['initialised'] = True
             self.__organizer.setPluginSetting(self.name(), "output-to-mod", redirectOutput)
         return redirectOutput
-    
+
     def __getOutputPath(self):
         path = self.__organizer.pluginSetting(self.name(), "output-path")
         pathlibPath = pathlib.Path(path)
@@ -194,7 +194,7 @@ class FNISTool(mobase.IPluginTool):
             self.__organizer.refreshModList()
             self.__organizer.setPluginSetting(self.name(), "output-path", path)
         return path
-    
+
     def __getFNISPath(self):
         savedPath = self.__organizer.pluginSetting(self.name(), "fnis-path")
         # FNIS must be installed within the game's data directory, so needs to either be within that or a mod folder
@@ -234,7 +234,7 @@ class FNISTool(mobase.IPluginTool):
                 else:
                     raise FNISInactiveException
         return savedPath
-    
+
     def __getModDirectory(self):
         modDirectory = None
         modList = self.__organizer.modsSortedByProfilePriority()
@@ -244,13 +244,13 @@ class FNISTool(mobase.IPluginTool):
                 modDirectory = pathlib.Path(self.__organizer.getMod(mod).absolutePath()).parent
                 break
         return modDirectory
-    
+
     @staticmethod
     def __withinDirectory(innerPath, outerDir):
         for path in innerPath.parents:
             if path.samefile(outerDir):
                 return True
         return False
-    
+
 def createPlugin():
     return FNISTool()
