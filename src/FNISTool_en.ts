@@ -24,7 +24,7 @@
     </message>
     <message>
         <location filename="FNISPatches.py" line="97"/>
-        <source>Configure FNIS Patches</source>
+        <source>FNIS/Configure FNIS Patches</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -87,7 +87,7 @@
     </message>
     <message>
         <location filename="FNISTool.py" line="81"/>
-        <source>Run FNIS</source>
+        <source>FNIS/Run FNIS</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
