@@ -73,8 +73,9 @@ class FNISTool(mobase.IPluginTool):
     def settings(self):
         return [
             mobase.PluginSetting("fnis-path", self.__tr("Path to GenerateFNISforUsers.exe"), ""),
-            mobase.PluginSetting("output-to-mod", self.__tr("Whether or not to direct the FNIS output to a mod folder."), dict(initialised=False, value=True)),
-            mobase.PluginSetting("output-path", self.__tr("When output-to-mod is enabled, the path to the mod to use."), "")
+            mobase.PluginSetting("output-to-mod", self.__tr("Whether or not to direct the FNIS output to a mod folder."), True),
+            mobase.PluginSetting("output-path", self.__tr("When output-to-mod is enabled, the path to the mod to use."), ""),
+            mobase.PluginSetting("initialised", self.__tr("Settings have been initialised.  Set to False to reinitialise them."), False)
             ]
 
     def displayName(self):
@@ -103,6 +104,11 @@ class FNISTool(mobase.IPluginTool):
         redirectOutput = True
         outputModName = None
 
+        if not bool(self.__organizer.pluginSetting(self.name(), "initialised")):
+            self.__organizer.setPluginSetting(self.name(), "fnis-path", "")
+            self.__organizer.setPluginSetting(self.name(), "output-path", "")
+            self.__organizer.setPluginSetting(self.name(), "output-to-mod", True)
+
         try:
             redirectOutput = self.__getRedirectOutput()
         except UnknownOutputPreferenceException:
@@ -127,6 +133,8 @@ class FNISTool(mobase.IPluginTool):
             # Error has already been displayed, just quit
             return
 
+        self.__organizer.setPluginSetting(self.name(), "initialised", True)
+
         if redirectOutput:
             # Disable the output mod as USVFS isn't designed to cope with its input directories being modified
             self.__organizer.modList().setActive(outputModName, False)
@@ -144,20 +152,18 @@ class FNISTool(mobase.IPluginTool):
         return QCoreApplication.translate("FNISTool", str)
 
     def __getRedirectOutput(self):
-        redirectOutput = self.__organizer.pluginSetting(self.name(), "output-to-mod")
-        if redirectOutput == "":
-            QMessageBox.critical(self.__parentWidget, self.__tr("Setting corrupt"), self.__tr("A setting for this plugin has been corrupted. Please restart Mod Organizer to reload the default. The plugin will now crash, but when MO is restarted, everything should be fine."))
-        if not redirectOutput['initialised']:
+        redirectOutput = bool(self.__organizer.pluginSetting(self.name(), "output-to-mod"))
+        initialised = bool(self.__organizer.pluginSetting(self.name(), "initialised"))
+        if not initialised:
             result = QMessageBox.question(self.__parentWidget, self.__tr("Output to a mod?"), self.__tr("Fore's New Idles in Skyrim can output either to Mod Organizer's VFS (potentially overwriting files from multiple mods) or to a separate mod. Would you like FNIS to output to a separate mod? This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel))
             if result == QMessageBox.Yes:
-                redirectOutput['value'] = True
+                redirectOutput = True
             elif result == QMessageBox.No:
-                redirectOutput['value'] = False
+                redirectOutput = False
             else:
                 # the user pressed cancel
                 raise UnknownOutputPreferenceException
 
-            redirectOutput['initialised'] = True
             self.__organizer.setPluginSetting(self.name(), "output-to-mod", redirectOutput)
         return redirectOutput
 
