@@ -16,7 +16,7 @@ import os
 import pathlib
 import sys
 
-from PyQt5.QtCore import QCoreApplication, qCritical, qDebug, QFileInfo
+from PyQt5.QtCore import QCoreApplication, qCritical, QFileInfo
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFileDialog, QFileSystemModel, QMessageBox
 
@@ -27,12 +27,16 @@ class FNISMissingException(Exception):
     """Thrown if GenerateFNISforUsers.exe path can't be found"""
     pass
 
+class FNISInactiveException(Exception):
+    """Thrown if GenerateFNISforUsers.exe is installed to an inactive mod"""
+    pass
+
 class UnknownOutputPreferenceException(Exception):
     """Thrown if the user hasn't specified whether to output to a separate mod"""
     pass
 
 class FNISTool(mobase.IPluginTool):
-    
+
     def __init__(self):
         super(FNISTool, self).__init__()
         self.__organizer = None
@@ -59,17 +63,23 @@ class FNISTool(mobase.IPluginTool):
         return mobase.VersionInfo(1, 0, 0, mobase.ReleaseType.prealpha)
 
     def isActive(self):
-        return True
+        supportedGames = {
+            "Skyrim",
+            "Skyrim Special Edition",
+            "Skyrim VR"
+        }
+        return self.__organizer.managedGame().gameName() in supportedGames
 
     def settings(self):
         return [
             mobase.PluginSetting("fnis-path", self.__tr("Path to GenerateFNISforUsers.exe"), ""),
-            mobase.PluginSetting("output-to-mod", self.__tr("Whether or not to direct the FNIS output to a mod folder."), dict(initialised=False, value=True)),
-            mobase.PluginSetting("output-path", self.__tr("When output-to-mod is enabled, the path to the mod to use."), "")
+            mobase.PluginSetting("output-to-mod", self.__tr("Whether or not to direct the FNIS output to a mod folder."), True),
+            mobase.PluginSetting("output-path", self.__tr("When output-to-mod is enabled, the path to the mod to use."), ""),
+            mobase.PluginSetting("initialised", self.__tr("Settings have been initialised.  Set to False to reinitialise them."), False)
             ]
 
     def displayName(self):
-        return self.__tr("Run FNIS")
+        return self.__tr("FNIS/Run FNIS")
 
     def tooltip(self):
         return self.__tr("Runs GenerateFNISforUsers.exe so the game can load custom animations.")
@@ -88,10 +98,17 @@ class FNISTool(mobase.IPluginTool):
 
     def setParentWidget(self, widget):
         self.__parentWidget = widget
-    
+
     def display(self):
         args = []
         redirectOutput = True
+        outputModName = None
+
+        if not bool(self.__organizer.pluginSetting(self.name(), "initialised")):
+            self.__organizer.setPluginSetting(self.name(), "fnis-path", "")
+            self.__organizer.setPluginSetting(self.name(), "output-path", "")
+            self.__organizer.setPluginSetting(self.name(), "output-to-mod", True)
+
         try:
             redirectOutput = self.__getRedirectOutput()
         except UnknownOutputPreferenceException:
@@ -99,62 +116,91 @@ class FNISTool(mobase.IPluginTool):
             return
         if redirectOutput:
             try:
-                args.append('RedirectFiles="' + self.__getOutputPath() + '"')
+                outputPath = self.__getOutputPath()
+                args.append('RedirectFiles="' + outputPath + '"')
+                outputModName = pathlib.Path(outputPath).name
             except UnknownOutputPreferenceException:
                 QMessageBox.critical(self.__parentWidget, self.__tr("Output mod not set"), self.__tr("The mod to output to was not specifed. The tool will now exit."))
                 return
         args.append('InstantExecute=1')
+
         try:
             executable = self.__getFNISPath()
         except FNISMissingException:
             QMessageBox.critical(self.__parentWidget, self.__tr("FNIS path not specified"), self.__tr("The path to GenerateFNISforUsers.exe wasn't specified. The tool will now exit."))
             return
+        except FNISInactiveException:
+            # Error has already been displayed, just quit
+            return
+
+        self.__organizer.setPluginSetting(self.name(), "initialised", True)
+
+        if redirectOutput:
+            # Disable the output mod as USVFS isn't designed to cope with its input directories being modified
+            self.__organizer.modList().setActive(outputModName, False)
+
         handle = self.__organizer.startApplication(executable, args)
         result, exitCode = self.__organizer.waitForApplication(handle)
-        qDebug(str(handle))
-        qDebug(str(result))
-        qDebug(str(exitCode))
-    
+
+        if redirectOutput:
+            # Enable the output mod
+            self.__organizer.modList().setActive(outputModName, True)
+            # Ensure the 'No valid game data' message goes away
+            self.__organizer.modDataChanged(self.__organizer.getMod(outputModName))
+
     def __tr(self, str):
         return QCoreApplication.translate("FNISTool", str)
-    
+
     def __getRedirectOutput(self):
-        redirectOutput = self.__organizer.pluginSetting(self.name(), "output-to-mod")
-        if redirectOutput == "":
-            QMessageBox.critical(self.__parentWidget, self.__tr("Setting corrupt"), self.__tr("A setting for this plugin has been corrupted. Please restart Mod Organizer to reload the default. The plugin will now crash, but when MO is restarted, everything should be fine."))
-        if not redirectOutput['initialised']:
+        redirectOutput = bool(self.__organizer.pluginSetting(self.name(), "output-to-mod"))
+        initialised = bool(self.__organizer.pluginSetting(self.name(), "initialised"))
+        if not initialised:
             result = QMessageBox.question(self.__parentWidget, self.__tr("Output to a mod?"), self.__tr("Fore's New Idles in Skyrim can output either to Mod Organizer's VFS (potentially overwriting files from multiple mods) or to a separate mod. Would you like FNIS to output to a separate mod? This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel))
             if result == QMessageBox.Yes:
-                redirectOutput['value'] = True
+                redirectOutput = True
             elif result == QMessageBox.No:
-                redirectOutput['value'] = False
+                redirectOutput = False
             else:
                 # the user pressed cancel
                 raise UnknownOutputPreferenceException
-            
-            redirectOutput['initialised'] = True
+
             self.__organizer.setPluginSetting(self.name(), "output-to-mod", redirectOutput)
         return redirectOutput
-    
+
     def __getOutputPath(self):
         path = self.__organizer.pluginSetting(self.name(), "output-path")
+        pathlibPath = pathlib.Path(path)
         modDirectory = self.__getModDirectory()
-        isAMod = pathlib.Path(path).parent.samefile(modDirectory)
-        if not os.path.isdir(path) or not isAMod:
-            QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, and you can create one if you do not have one already. FNIS will delete any existing contents of this directory when it is run, so do not choose a mod you use for anything else. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
-            while not os.path.isdir(path) or not isAMod:
+        isAMod = pathlibPath.parent.samefile(modDirectory)
+        if not pathlibPath.is_dir() or not isAMod:
+            QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, and you can create one if you do not have one already. This mod will not be available to the VFS when FNIS is run, so do not choose a mod you use for anything else. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
+            while not pathlibPath.is_dir() or not isAMod:
                 path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose an output mod"), str(modDirectory), QFileDialog.ShowDirsOnly)
-                if not os.path.isdir(path):
+                pathlibPath = pathlib.Path(path)
+                if not pathlibPath.is_dir():
                     # cancel was pressed
                     raise UnknownOutputPreferenceException
-                isAMod = pathlib.Path(path).parent.samefile(modDirectory)
+                isAMod = pathlibPath.parent.samefile(modDirectory)
                 if not isAMod:
                     QMessageBox.information(self.__parentWidget, self.__tr("Not a mod..."), self.__tr("The selected directory is not a Mod Organizer managed mod. Please choose a directory within the mods directory."))
+                    continue
+                empty = True
+                for item in pathlibPath.iterdir():
+                    if item.name != "meta.ini":
+                        empty = False
+                        break
+                if not empty:
+                    if QMessageBox.question(self.__parentWidget, self.__tr("Mod not empty"), self.__tr("The selected mod already contains files. Are you sure want to use it as the output mod?"), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No)) == QMessageBox.Yes:
+                        # Proceed normally - the user is happy
+                        pass
+                    else:
+                        # Restart outer loop - the user wants to pick again
+                        isAMod = False
             # The user may have created a new mod in the MO mods directory, so we must trigger a refresh
             self.__organizer.refreshModList()
             self.__organizer.setPluginSetting(self.name(), "output-path", path)
         return path
-    
+
     def __getFNISPath(self):
         savedPath = self.__organizer.pluginSetting(self.name(), "fnis-path")
         # FNIS must be installed within the game's data directory, so needs to either be within that or a mod folder
@@ -179,8 +225,22 @@ class FNISTool(mobase.IPluginTool):
                     break
                 else:
                     QMessageBox.information(self.__parentWidget, self.__tr("Not a compatible location..."), self.__tr("Fore's New Idles in Skyrim only works when within the VFS, so must be installed to the game's data directory or within a mod folder. Please select a different FNIS installation."))
+        # Check the mod is actually enabled
+        if self.__withinDirectory(pathlibPath, modDirectory):
+            fnisModName = None
+            for path in pathlibPath.parents:
+                if path.parent.samefile(modDirectory):
+                    fnisModName = path.name
+                    break
+            if (self.__organizer.modList().state(fnisModName) & 0x2) == 0:
+                # FNIS is installed to an inactive mod
+                result = QMessageBox.question(self.__parentWidget, self.__tr("FNIS mod deactivated"), self.__tr("Fore's New Idles in Skyrim is installed to an inactive mod. Press OK to activate it or Cancel to quit the tool"), QMessageBox.StandardButtons(QMessageBox.Ok | QMessageBox.Cancel))
+                if result == QMessageBox.Ok:
+                    self.__organizer.modList().setActive(fnisModName, True)
+                else:
+                    raise FNISInactiveException
         return savedPath
-    
+
     def __getModDirectory(self):
         modDirectory = None
         modList = self.__organizer.modsSortedByProfilePriority()
@@ -190,13 +250,13 @@ class FNISTool(mobase.IPluginTool):
                 modDirectory = pathlib.Path(self.__organizer.getMod(mod).absolutePath()).parent
                 break
         return modDirectory
-    
+
     @staticmethod
     def __withinDirectory(innerPath, outerDir):
         for path in innerPath.parents:
             if path.samefile(outerDir):
                 return True
         return False
-    
+
 def createPlugin():
     return FNISTool()

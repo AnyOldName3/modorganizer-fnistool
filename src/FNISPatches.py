@@ -30,7 +30,7 @@ patchListNames = {
 }
 
 class Patch:
-    
+
     def __init__(self, fullString):
         fields = fullString.split('#')
         # field names taken from FNIS PatchListSE.txt
@@ -43,25 +43,25 @@ class Patch:
             self.optional_file_path_for_mod_install_check = fields[5]
         else:
             self.optional_file_path_for_mod_install_check = None
-    
+
     def asQListWidgetItem(self):
         listItem = QListWidgetItem(self.text_for_patch, None, 0)
         listItem.setFlags(listItem.flags() | Qt.ItemIsUserCheckable)
         # We can't set the hidden status until the item is actually in a list
         listItem.setData(Qt.UserRole, self.patchid)
-        
+
         return listItem
 
 class ExpandingQListWidget(QListWidget):
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
-    
+
     def sizeHint(self):
         return self.childrenRect().size()
 
 class FNISPatches(mobase.IPluginTool):
-    
+
     def __init__(self):
         super(FNISPatches, self).__init__()
         self.__organizer = None
@@ -88,13 +88,13 @@ class FNISPatches(mobase.IPluginTool):
         return mobase.VersionInfo(1, 0, 0, mobase.ReleaseType.prealpha)
 
     def isActive(self):
-        return True
+        return self.__organizer.managedGame().gameName() in patchListNames.keys()
 
     def settings(self):
         return []
 
     def displayName(self):
-        return self.__tr("Configure FNIS Patches")
+        return self.__tr("FNIS/Configure FNIS Patches")
 
     def tooltip(self):
         return self.__tr("Configures the patches which FNIS applies to the game.")
@@ -113,22 +113,22 @@ class FNISPatches(mobase.IPluginTool):
 
     def setParentWidget(self, widget):
         self.__parentWidget = widget
-    
+
     def display(self):
         fnisPath = self.__getFNISPath()
         if fnisPath == None:
             return
-        
+
         enabledPatches = self.__loadEnabledPatches()
-        
+
         availablePatches = self.__loadAvailablePatches()
-        
+
         dialog = QDialog(self.__parentWidget)
         dialog.setWindowTitle(self.__tr("Select Patches"))
-        
+
         label = QLabel(self.__tr("Note: Some patches may be automatically enabled or disabled by Fore's New Idles in Skyrim, so don't be surprised if its list differs from this one."))
         label.setWordWrap(True)
-        
+
         listWidget = ExpandingQListWidget()
         for patch in availablePatches.values():
             listItem = patch.asQListWidgetItem()
@@ -138,36 +138,36 @@ class FNISPatches(mobase.IPluginTool):
                 listItem.setCheckState(Qt.Unchecked)
             listWidget.addItem(listItem)
             listItem.setHidden(patch.hidden)
-        
+
         buttonBox = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
-        
+
         layout = QVBoxLayout()
         layout.addWidget(label)
         layout.addWidget(listWidget)
         layout.addWidget(buttonBox)
         dialog.setLayout(layout)
-        
+
         result = dialog.exec()
         if result == QDialog.Rejected:
             # Cancel was pressed
             return
-        
+
         enabledPatches = set()
         for i in range(0, listWidget.count()):
             listItem = listWidget.item(i)
             if listItem.checkState() == Qt.Checked:
                 enabledPatches.add(listItem.data(Qt.UserRole))
         self.__saveEnabledPatches(enabledPatches)
-    
+
     def __tr(self, str):
         return QCoreApplication.translate("FNISPatches", str)
-    
+
     @staticmethod
     def __mainToolName():
         return FNISTool().name()
-    
+
     def __getFNISPath(self):
         savedPath = self.__organizer.pluginSetting(self.__mainToolName(), "fnis-path")
         # FNIS must be installed within the game's data directory, so needs to either be within that or a mod folder
@@ -180,7 +180,7 @@ class FNISPatches(mobase.IPluginTool):
             QMessageBox.information(self.__parentWidget, self.__tr("Unable to find FNIS"), self.__tr("Fore's New Idles in Skyrim can't be found using the location saved in Mod Organizer's settings. Please run the main FNIS integration tool before using this one."))
             return None
         return savedPath
-    
+
     def __getModDirectory(self):
         modDirectory = None
         modList = self.__organizer.modsSortedByProfilePriority()
@@ -190,27 +190,27 @@ class FNISPatches(mobase.IPluginTool):
                 modDirectory = pathlib.Path(self.__organizer.getMod(mod).absolutePath()).parent
                 break
         return modDirectory
-    
+
     @staticmethod
     def __withinDirectory(innerPath, outerDir):
         for path in innerPath.parents:
             if path.samefile(outerDir):
                 return True
         return False
-    
+
     def __loadEnabledPatches(self, ):
         path = pathlib.Path(self.__getFNISPath()).parent
         path /= "MyPatches.txt"
         if not path.is_file():
             return set()
-        
+
         enabledPatches = set()
         with path.open() as f:
             for line in f:
                 if line != "":
                     enabledPatches.add(line.strip())
         return enabledPatches
-    
+
     def __saveEnabledPatches(self, enabledPatches):
         path = pathlib.Path(self.__getFNISPath()).parent
         path /= "MyPatches.txt"
@@ -218,7 +218,7 @@ class FNISPatches(mobase.IPluginTool):
             for patchName in enabledPatches:
                 f.write(patchName)
                 f.write("\n")
-    
+
     def __loadAvailablePatches(self):
         patchListName = patchListNames[self.__organizer.managedGame().gameName()]
         path = pathlib.Path(self.__getFNISPath()).parent
@@ -237,6 +237,6 @@ class FNISPatches(mobase.IPluginTool):
                 patch = Patch(line.strip())
                 availablePatches[patch.patchid] = patch
         return availablePatches
-    
+
 def createPlugin():
     return FNISPatches()
