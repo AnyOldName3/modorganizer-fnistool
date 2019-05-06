@@ -60,7 +60,7 @@ class FNISTool(mobase.IPluginTool):
         return self.__tr("Runs GenerateFNISforUsers.exe so the game can load custom animations.")
 
     def version(self):
-        return mobase.VersionInfo(1, 1, 0, 0)
+        return mobase.VersionInfo(1, 1, 1, 0)
 
     def isActive(self):
         supportedGames = {
@@ -143,14 +143,14 @@ class FNISTool(mobase.IPluginTool):
                     QMessageBox.critical(self.__parentWidget, self.__tr("Output mod not set"), self.__tr("The mod to output to was not specifed. The tool will now exit."))
                     return
 
-            try:
-                executable = self.__getFNISPath()
-            except FNISMissingException:
-                QMessageBox.critical(self.__parentWidget, self.__tr("FNIS path not specified"), self.__tr("The path to GenerateFNISforUsers.exe wasn't specified. The tool will now exit."))
-                return
-            except FNISInactiveException:
-                # Error has already been displayed, just quit
-                return
+        try:
+            executable = self.__getFNISPath()
+        except FNISMissingException:
+            QMessageBox.critical(self.__parentWidget, self.__tr("FNIS path not specified"), self.__tr("The path to GenerateFNISforUsers.exe wasn't specified. The tool will now exit."))
+            return
+        except FNISInactiveException:
+            # Error has already been displayed, just quit
+            return
 
         self.__organizer.setPluginSetting(self.name(), "initialised", True)
 
