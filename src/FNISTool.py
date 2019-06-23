@@ -117,7 +117,7 @@ class FNISTool(mobase.IPluginTool):
         try:
             redirectOutput = self.__getRedirectOutput()
         except UnknownOutputPreferenceException:
-            QMessageBox.critical(self.__parentWidget, self.__tr("Output preference not set"), self.__tr("Whether or not to output to a mod was not specifed. The tool will now exit."))
+            QMessageBox.critical(self.__parentWidget, self.__tr("Output preference not set"), self.__tr("Whether or not to output to a mod was not specified. The tool will now exit."))
             return
         if redirectOutput:
             try:
@@ -125,7 +125,7 @@ class FNISTool(mobase.IPluginTool):
                 args.append('RedirectFiles="' + outputPath + '"')
                 outputModName = pathlib.Path(outputPath).name
             except UnknownOutputPreferenceException:
-                QMessageBox.critical(self.__parentWidget, self.__tr("Output mod not set"), self.__tr("The mod to output to was not specifed. The tool will now exit."))
+                QMessageBox.critical(self.__parentWidget, self.__tr("Output mod not set"), self.__tr("The mod to output to was not specified. The tool will now exit."))
                 return
         args.append('InstantExecute=1')
 
@@ -133,14 +133,14 @@ class FNISTool(mobase.IPluginTool):
             try:
                 redirectLogs = self.__getRedirectLogs()
             except UnknownOutputPreferenceException:
-                QMessageBox.critical(self.__parentWidget, self.__tr("Output preference not set"), self.__tr("Whether or not to output to a mod was not specifed. The tool will now exit."))
+                QMessageBox.critical(self.__parentWidget, self.__tr("Output preference not set"), self.__tr("Whether or not to output to a mod was not specified. The tool will now exit."))
                 return
             if redirectLogs:
                 try:
                     outputPath = self.__getLogOutputPath()
                     logOutputModName = pathlib.Path(outputPath).name
                 except UnknownOutputPreferenceException:
-                    QMessageBox.critical(self.__parentWidget, self.__tr("Output mod not set"), self.__tr("The mod to output to was not specifed. The tool will now exit."))
+                    QMessageBox.critical(self.__parentWidget, self.__tr("Output mod not set"), self.__tr("The mod to output to was not specified. The tool will now exit."))
                     return
 
         try:
