@@ -60,7 +60,7 @@ class FNISTool(mobase.IPluginTool):
         return self.__tr("Runs GenerateFNISforUsers.exe so the game can load custom animations.")
 
     def version(self):
-        return mobase.VersionInfo(1, 1, 1, 0)
+        return mobase.VersionInfo(1, 1, 2, 0)
 
     def isActive(self):
         supportedGames = {
@@ -219,10 +219,10 @@ class FNISTool(mobase.IPluginTool):
             QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, and you can create one if you do not have one already. This mod will not be available to the VFS when FNIS is run, so do not choose a mod you use for anything else. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
             while not pathlibPath.is_dir() or not isAMod:
                 path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose an output mod"), str(modDirectory), QFileDialog.ShowDirsOnly)
-                pathlibPath = pathlib.Path(path)
-                if not pathlibPath.is_dir():
+                if not path:
                     # cancel was pressed
                     raise UnknownOutputPreferenceException
+                pathlibPath = pathlib.Path(path)
                 isAMod = pathlibPath.parent.samefile(modDirectory)
                 if not isAMod:
                     QMessageBox.information(self.__parentWidget, self.__tr("Not a mod..."), self.__tr("The selected directory is not a Mod Organizer managed mod. Please choose a directory within the mods directory."))
@@ -255,10 +255,10 @@ class FNISTool(mobase.IPluginTool):
             QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for logs for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, must not be the same as the FNIS output mod, and you can create one if you do not have one already. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
             while not pathlibPath.is_dir() or not isAMod or isSameAsFnisOutput:
                 path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose a log output mod"), str(modDirectory), QFileDialog.ShowDirsOnly)
-                pathlibPath = pathlib.Path(path)
-                if not pathlibPath.is_dir():
+                if not path():
                     # cancel was pressed
                     raise UnknownOutputPreferenceException
+                pathlibPath = pathlib.Path(path)
                 isAMod = pathlibPath.parent.samefile(modDirectory)
                 if not isAMod:
                     QMessageBox.information(self.__parentWidget, self.__tr("Not a mod..."), self.__tr("The selected directory is not a Mod Organizer managed mod. Please choose a directory within the mods directory."))
