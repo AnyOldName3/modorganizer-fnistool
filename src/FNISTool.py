@@ -316,7 +316,7 @@ class FNISTool(mobase.IPluginTool):
                 if path.parent.samefile(modDirectory):
                     fnisModName = path.name
                     break
-            if (self.__organizer.modList().state(fnisModName) & 0x2) == 0:
+            if (self.__organizer.modList().state(fnisModName) & mobase.ModState.active) == 0:
                 # FNIS is installed to an inactive mod
                 result = QMessageBox.question(self.__parentWidget, self.__tr("FNIS mod deactivated"), self.__tr("Fore's New Idles in Skyrim is installed to an inactive mod. Press OK to activate it or Cancel to quit the tool"), QMessageBox.StandardButtons(QMessageBox.Ok | QMessageBox.Cancel))
                 if result == QMessageBox.Ok:
