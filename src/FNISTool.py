@@ -60,7 +60,7 @@ class FNISTool(mobase.IPluginTool):
         return self.__tr("Runs GenerateFNISforUsers.exe so the game can load custom animations.")
 
     def version(self):
-        return mobase.VersionInfo(1, 1, 2, 0)
+        return mobase.VersionInfo(1, 2, 0, 0)
 
     def isActive(self):
         supportedGames = {
@@ -326,14 +326,7 @@ class FNISTool(mobase.IPluginTool):
         return savedPath
 
     def __getModDirectory(self):
-        modDirectory = None
-        modList = self.__organizer.modsSortedByProfilePriority()
-        # Get the first managed mod so we can access the mods directory.
-        for mod in modList:
-            if (self.__organizer.modList().state(mod) & 0x2) != 0:
-                modDirectory = pathlib.Path(self.__organizer.getMod(mod).absolutePath()).parent
-                break
-        return modDirectory
+        return self.__organizer.modsPath()
 
     @staticmethod
     def __withinDirectory(innerPath, outerDir):
