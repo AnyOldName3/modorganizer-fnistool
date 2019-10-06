@@ -60,7 +60,7 @@ class FNISTool(mobase.IPluginTool):
         return self.__tr("Runs GenerateFNISforUsers.exe so the game can load custom animations.")
 
     def version(self):
-        return mobase.VersionInfo(1, 1, 1, 0)
+        return mobase.VersionInfo(1, 2, 0, 0)
 
     def isActive(self):
         supportedGames = {
@@ -219,10 +219,10 @@ class FNISTool(mobase.IPluginTool):
             QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, and you can create one if you do not have one already. This mod will not be available to the VFS when FNIS is run, so do not choose a mod you use for anything else. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
             while not pathlibPath.is_dir() or not isAMod:
                 path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose an output mod"), str(modDirectory), QFileDialog.ShowDirsOnly)
-                pathlibPath = pathlib.Path(path)
-                if not pathlibPath.is_dir():
+                if not path:
                     # cancel was pressed
                     raise UnknownOutputPreferenceException
+                pathlibPath = pathlib.Path(path)
                 isAMod = pathlibPath.parent.samefile(modDirectory)
                 if not isAMod:
                     QMessageBox.information(self.__parentWidget, self.__tr("Not a mod..."), self.__tr("The selected directory is not a Mod Organizer managed mod. Please choose a directory within the mods directory."))
@@ -255,10 +255,10 @@ class FNISTool(mobase.IPluginTool):
             QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for logs for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, must not be the same as the FNIS output mod, and you can create one if you do not have one already. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
             while not pathlibPath.is_dir() or not isAMod or isSameAsFnisOutput:
                 path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose a log output mod"), str(modDirectory), QFileDialog.ShowDirsOnly)
-                pathlibPath = pathlib.Path(path)
-                if not pathlibPath.is_dir():
+                if not path():
                     # cancel was pressed
                     raise UnknownOutputPreferenceException
+                pathlibPath = pathlib.Path(path)
                 isAMod = pathlibPath.parent.samefile(modDirectory)
                 if not isAMod:
                     QMessageBox.information(self.__parentWidget, self.__tr("Not a mod..."), self.__tr("The selected directory is not a Mod Organizer managed mod. Please choose a directory within the mods directory."))
@@ -316,7 +316,7 @@ class FNISTool(mobase.IPluginTool):
                 if path.parent.samefile(modDirectory):
                     fnisModName = path.name
                     break
-            if (self.__organizer.modList().state(fnisModName) & 0x2) == 0:
+            if (self.__organizer.modList().state(fnisModName) & mobase.ModState.active) == 0:
                 # FNIS is installed to an inactive mod
                 result = QMessageBox.question(self.__parentWidget, self.__tr("FNIS mod deactivated"), self.__tr("Fore's New Idles in Skyrim is installed to an inactive mod. Press OK to activate it or Cancel to quit the tool"), QMessageBox.StandardButtons(QMessageBox.Ok | QMessageBox.Cancel))
                 if result == QMessageBox.Ok:
@@ -326,14 +326,7 @@ class FNISTool(mobase.IPluginTool):
         return savedPath
 
     def __getModDirectory(self):
-        modDirectory = None
-        modList = self.__organizer.modsSortedByProfilePriority()
-        # Get the first managed mod so we can access the mods directory.
-        for mod in modList:
-            if (self.__organizer.modList().state(mod) & 0x2) != 0:
-                modDirectory = pathlib.Path(self.__organizer.getMod(mod).absolutePath()).parent
-                break
-        return modDirectory
+        return self.__organizer.modsPath()
 
     @staticmethod
     def __withinDirectory(innerPath, outerDir):
