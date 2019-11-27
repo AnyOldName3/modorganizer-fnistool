@@ -14,4 +14,5 @@ add_custom_target(translations ALL DEPENDS ${fnistool_translations_qm})
 INSTALL(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/FNISTool.py
         ${CMAKE_CURRENT_SOURCE_DIR}/FNISPatches.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/FNISToolReset.py
         DESTINATION bin/plugins)
