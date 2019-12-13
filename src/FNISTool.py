@@ -255,7 +255,7 @@ class FNISTool(mobase.IPluginTool):
             QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for logs for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, must not be the same as the FNIS output mod, and you can create one if you do not have one already. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
             while not pathlibPath.is_dir() or not isAMod or isSameAsFnisOutput:
                 path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose a log output mod"), str(modDirectory), QFileDialog.ShowDirsOnly)
-                if not path():
+                if not path:
                     # cancel was pressed
                     raise UnknownOutputPreferenceException
                 pathlibPath = pathlib.Path(path)
