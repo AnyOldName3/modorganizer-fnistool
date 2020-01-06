@@ -241,4 +241,27 @@
         <translation type="unfinished"></translation>
     </message>
 </context>
+<context>
+    <name>FNISToolReset</name>
+    <message>
+        <location filename="FNISToolReset.py" line="18"/>
+        <source>Provides an easier way to reset the FNIS integration tool settings when needed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="FNISToolReset.py" line="35"/>
+        <source>FNIS/Reset FNIS Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="FNISToolReset.py" line="56"/>
+        <source>Reset settings?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="FNISToolReset.py" line="56"/>
+        <source>Would you like to reset the options that pop up when you first ran &quot;{}&quot;?</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
 </TS>
