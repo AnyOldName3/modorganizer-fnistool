@@ -68,10 +68,12 @@ class FNISTool(mobase.IPluginTool):
             "Skyrim Special Edition",
             "Skyrim VR"
         }
-        return self.__organizer.managedGame().gameName() in supportedGames
+        return self.__organizer.managedGame().gameName() in supportedGames and\
+               self.__organizer.pluginSetting(self.name(), "enabled")
 
     def settings(self):
         return [
+            mobase.PluginSetting("enabled", self.__tr("Enable all FNISTool plugins"), True),
             mobase.PluginSetting("fnis-path", self.__tr("Path to GenerateFNISforUsers.exe"), ""),
             mobase.PluginSetting("output-to-mod", self.__tr("Whether or not to direct the FNIS output to a mod folder."), True),
             mobase.PluginSetting("output-path", self.__tr("When output-to-mod is enabled, the path to the mod to use."), ""),

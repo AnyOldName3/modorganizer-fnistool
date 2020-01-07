@@ -88,7 +88,8 @@ class FNISPatches(mobase.IPluginTool):
         return mobase.VersionInfo(1, 0, 0, mobase.ReleaseType.prealpha)
 
     def isActive(self):
-        return self.__organizer.managedGame().gameName() in patchListNames.keys()
+        return (self.__organizer.managedGame().gameName() in patchListNames.keys() and
+                self.__organizer.pluginSetting("FNIS Integration Tool", "enabled") is True)
 
     def settings(self):
         return []

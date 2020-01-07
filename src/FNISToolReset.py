@@ -26,7 +26,8 @@ class FNISToolReset(mobase.IPluginTool):
             "Skyrim Special Edition",
             "Skyrim VR"
         }
-        return self.__organizer.managedGame().gameName() in supportedGames
+        return (self.__organizer.managedGame().gameName() in supportedGames and
+                self.__organizer.pluginSetting("FNIS Integration Tool", "enabled") is True)
 
     def settings(self):
         return []
