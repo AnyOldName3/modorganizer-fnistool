@@ -53,6 +53,9 @@ class FNISTool(mobase.IPluginTool):
     def name(self):
         return "FNIS Integration Tool"
 
+    def localizedName(self):
+        return self.__tr("FNIS Integration Tool")
+
     def author(self):
         return "AnyOldName3"
 
@@ -62,18 +65,17 @@ class FNISTool(mobase.IPluginTool):
     def version(self):
         return mobase.VersionInfo(1, 2, 0, 0)
 
-    def isActive(self):
-        supportedGames = {
-            "Skyrim",
-            "Skyrim Special Edition",
-            "Skyrim VR"
-        }
-        return self.__organizer.managedGame().gameName() in supportedGames and\
-               self.__organizer.pluginSetting(self.name(), "enabled")
+    def requirements(self):
+        return [
+            mobase.PluginRequirementFactory.gameDependency({
+                "Skyrim",
+                "Skyrim Special Edition",
+                "Skyrim VR"
+            })
+        ]
 
     def settings(self):
         return [
-            mobase.PluginSetting("enabled", self.__tr("Enable all FNISTool plugins"), True),
             mobase.PluginSetting("fnis-path", self.__tr("Path to GenerateFNISforUsers.exe"), ""),
             mobase.PluginSetting("output-to-mod", self.__tr("Whether or not to direct the FNIS output to a mod folder."), True),
             mobase.PluginSetting("output-path", self.__tr("When output-to-mod is enabled, the path to the mod to use."), ""),
