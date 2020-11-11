@@ -90,10 +90,8 @@ class FNISPatches(mobase.IPluginTool):
     def version(self):
         return mobase.VersionInfo(1, 0, 0, mobase.ReleaseType.prealpha)
 
-    def requirements(self):
-        return [
-            mobase.PluginRequirementFactory.pluginDependency("FNIS Integration Tool")
-        ]
+    def master(self):
+        return "FNIS Integration Tool"
 
     def settings(self):
         return []
