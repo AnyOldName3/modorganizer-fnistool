@@ -11,6 +11,9 @@ class FNISToolReset(mobase.IPluginTool):
     def name(self):
         return "FNIS Integration Tool Reset"
 
+    def localizedName(self):
+        return self.__tr("FNIS Integration Tool Reset")
+
     def author(self):
         return "LostDragonist"
 
@@ -19,15 +22,9 @@ class FNISToolReset(mobase.IPluginTool):
 
     def version(self):
         return mobase.VersionInfo(1, 0, 0, 0)
-    
-    def isActive(self):
-        supportedGames = {
-            "Skyrim",
-            "Skyrim Special Edition",
-            "Skyrim VR"
-        }
-        return (self.__organizer.managedGame().gameName() in supportedGames and
-                self.__organizer.pluginSetting("FNIS Integration Tool", "enabled") is True)
+
+    def master(self):
+        return "FNIS Integration Tool"
 
     def settings(self):
         return []
