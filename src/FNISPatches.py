@@ -88,7 +88,7 @@ class FNISPatches(mobase.IPluginTool):
         return self.__tr("Configures the patches which FNIS applies to the game.")
 
     def version(self):
-        return mobase.VersionInfo(1, 0, 1, 0)
+        return mobase.VersionInfo(1, 0, 1, mobase.ReleaseType.final)
 
     def master(self):
         return "FNIS Integration Tool"
