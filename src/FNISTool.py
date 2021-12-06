@@ -16,12 +16,11 @@ import os
 import pathlib
 import sys
 
-from PyQt5.QtCore import QCoreApplication, qCritical, QFileInfo
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QFileDialog, QFileSystemModel, QMessageBox
+from PyQt6.QtCore import QCoreApplication, qCritical, QFileInfo
+from PyQt6.QtGui import QIcon, QFileSystemModel
+from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
-if "mobase" not in sys.modules:
-    import mock_mobase as mobase
+import mobase
 
 class FNISMissingException(Exception):
     """Thrown if GenerateFNISforUsers.exe path can't be found"""
@@ -186,10 +185,10 @@ class FNISTool(mobase.IPluginTool):
         redirectOutput = bool(self.__organizer.pluginSetting(self.name(), "output-to-mod"))
         initialised = bool(self.__organizer.pluginSetting(self.name(), "initialised"))
         if not initialised:
-            result = QMessageBox.question(self.__parentWidget, self.__tr("Output to a mod?"), self.__tr("Fore's New Idles in Skyrim can output either to Mod Organizer's VFS (potentially overwriting files from multiple mods) or to a separate mod. Would you like FNIS to output to a separate mod? This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel))
-            if result == QMessageBox.Yes:
+            result = QMessageBox.question(self.__parentWidget, self.__tr("Output to a mod?"), self.__tr("Fore's New Idles in Skyrim can output either to Mod Organizer's VFS (potentially overwriting files from multiple mods) or to a separate mod. Would you like FNIS to output to a separate mod? This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."), QMessageBox.StandardButton(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel))
+            if result == QMessageBox.StandardButton.Yes:
                 redirectOutput = True
-            elif result == QMessageBox.No:
+            elif result == QMessageBox.StandardButton.No:
                 redirectOutput = False
             else:
                 # the user pressed cancel
@@ -202,10 +201,10 @@ class FNISTool(mobase.IPluginTool):
         redirectLogs = bool(self.__organizer.pluginSetting(self.name(), "output-logs-to-mod"))
         initialised = bool(self.__organizer.pluginSetting(self.name(), "initialised"))
         if not initialised:
-            result = QMessageBox.question(self.__parentWidget, self.__tr("Output logs to a mod?"), self.__tr("Any new logs generated when running FNIS will end up in Mod Organizer's overwrite folder. Would you like these logs to be output to a separate mod? This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel))
-            if result == QMessageBox.Yes:
+            result = QMessageBox.question(self.__parentWidget, self.__tr("Output logs to a mod?"), self.__tr("Any new logs generated when running FNIS will end up in Mod Organizer's overwrite folder. Would you like these logs to be output to a separate mod? This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."), QMessageBox.StandardButton(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel))
+            if result == QMessageBox.StandardButton.Yes:
                 redirectLogs = True
-            elif result == QMessageBox.No:
+            elif result == QMessageBox.StandardButton.No:
                 redirectLogs = False
             else:
                 # the user pressed cancel
@@ -222,7 +221,7 @@ class FNISTool(mobase.IPluginTool):
         if not pathlibPath.is_dir() or not isAMod:
             QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, and you can create one if you do not have one already. This mod will not be available to the VFS when FNIS is run, so do not choose a mod you use for anything else. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
             while not pathlibPath.is_dir() or not isAMod:
-                path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose an output mod"), str(modDirectory), QFileDialog.ShowDirsOnly)
+                path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose an output mod"), str(modDirectory), QFileDialog.Option.ShowDirsOnly)
                 if not path:
                     # cancel was pressed
                     raise UnknownOutputPreferenceException
@@ -237,7 +236,7 @@ class FNISTool(mobase.IPluginTool):
                         empty = False
                         break
                 if not empty:
-                    if QMessageBox.question(self.__parentWidget, self.__tr("Mod not empty"), self.__tr("The selected mod already contains files. Are you sure want to use it as the output mod?"), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No)) == QMessageBox.Yes:
+                    if QMessageBox.question(self.__parentWidget, self.__tr("Mod not empty"), self.__tr("The selected mod already contains files. Are you sure want to use it as the output mod?"), QMessageBox.StandardButton(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)) == QMessageBox.StandardButton.Yes:
                         # Proceed normally - the user is happy
                         pass
                     else:
@@ -258,7 +257,7 @@ class FNISTool(mobase.IPluginTool):
         if not pathlibPath.is_dir() or not isAMod or isSameAsFnisOutput:
             QMessageBox.information(self.__parentWidget, self.__tr("Choose an output mod"), self.__tr("Please choose an output mod for logs for Fore's New Idles in Skyrim. This must be a directory in Mod Organizer's mods directory, must not be the same as the FNIS output mod, and you can create one if you do not have one already. This setting can be updated in the Plugins tab of the Mod Organizer Settings menu."))
             while not pathlibPath.is_dir() or not isAMod or isSameAsFnisOutput:
-                path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose a log output mod"), str(modDirectory), QFileDialog.ShowDirsOnly)
+                path = QFileDialog.getExistingDirectory(self.__parentWidget, self.__tr("Choose a log output mod"), str(modDirectory), QFileDialog.Option.ShowDirsOnly)
                 if not path:
                     # cancel was pressed
                     raise UnknownOutputPreferenceException
@@ -277,7 +276,7 @@ class FNISTool(mobase.IPluginTool):
                         empty = False
                         break
                 if not empty:
-                    if QMessageBox.question(self.__parentWidget, self.__tr("Mod not empty"), self.__tr("The selected mod already contains files. Are you sure want to use it as the output mod?"), QMessageBox.StandardButtons(QMessageBox.Yes | QMessageBox.No)) == QMessageBox.Yes:
+                    if QMessageBox.question(self.__parentWidget, self.__tr("Mod not empty"), self.__tr("The selected mod already contains files. Are you sure want to use it as the output mod?"), QMessageBox.StandardButton(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)) == QMessageBox.StandardButton.Yes:
                         # Proceed normally - the user is happy
                         pass
                     else:
@@ -322,8 +321,8 @@ class FNISTool(mobase.IPluginTool):
                     break
             if (self.__organizer.modList().state(fnisModName) & mobase.ModState.active) == 0:
                 # FNIS is installed to an inactive mod
-                result = QMessageBox.question(self.__parentWidget, self.__tr("FNIS mod deactivated"), self.__tr("Fore's New Idles in Skyrim is installed to an inactive mod. Press OK to activate it or Cancel to quit the tool"), QMessageBox.StandardButtons(QMessageBox.Ok | QMessageBox.Cancel))
-                if result == QMessageBox.Ok:
+                result = QMessageBox.question(self.__parentWidget, self.__tr("FNIS mod deactivated"), self.__tr("Fore's New Idles in Skyrim is installed to an inactive mod. Press OK to activate it or Cancel to quit the tool"), QMessageBox.StandardButton(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel))
+                if result == QMessageBox.StandardButton.Ok:
                     self.__organizer.modList().setActive(fnisModName, True)
                 else:
                     raise FNISInactiveException

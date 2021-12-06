@@ -16,12 +16,12 @@ import os
 import pathlib
 import sys
 
-from PyQt5.QtCore import QCoreApplication, qCritical, QFileInfo, Qt
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QDialogButtonBox, QFileSystemModel, QLabel, QListWidget, QListWidgetItem, QMessageBox, QVBoxLayout
+from FNISTool import FNISTool
+from PyQt6.QtCore import QCoreApplication, qCritical, QFileInfo, Qt
+from PyQt6.QtGui import QIcon, QFileSystemModel
+from PyQt6.QtWidgets import QDialogButtonBox, QLabel, QListWidget, QListWidgetItem, QMessageBox, QVBoxLayout, QDialog
 
-if "mobase" not in sys.modules:
-    import mock_mobase as mobase
+import mobase
 
 patchListNames = {
     "Skyrim": "PatchList.txt",
@@ -46,9 +46,9 @@ class Patch:
 
     def asQListWidgetItem(self):
         listItem = QListWidgetItem(self.text_for_patch, None, 0)
-        listItem.setFlags(listItem.flags() | Qt.ItemIsUserCheckable)
+        listItem.setFlags(listItem.flags() | Qt.ItemFlag.ItemIsUserCheckable)
         # We can't set the hidden status until the item is actually in a list
-        listItem.setData(Qt.UserRole, self.patchid)
+        listItem.setData(Qt.ItemDataRole.UserRole, self.patchid)
 
         return listItem
 
@@ -136,13 +136,13 @@ class FNISPatches(mobase.IPluginTool):
         for patch in availablePatches.values():
             listItem = patch.asQListWidgetItem()
             if patch.patchid in enabledPatches:
-                listItem.setCheckState(Qt.Checked)
+                listItem.setCheckState(Qt.CheckState.Checked)
             else:
-                listItem.setCheckState(Qt.Unchecked)
+                listItem.setCheckState(Qt.CheckState.Unchecked)
             listWidget.addItem(listItem)
             listItem.setHidden(patch.hidden)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
 
@@ -153,15 +153,15 @@ class FNISPatches(mobase.IPluginTool):
         dialog.setLayout(layout)
 
         result = dialog.exec()
-        if result == QDialog.Rejected:
+        if result == QDialog.DialogCode.Rejected:
             # Cancel was pressed
             return
 
         enabledPatches = set()
         for i in range(0, listWidget.count()):
             listItem = listWidget.item(i)
-            if listItem.checkState() == Qt.Checked:
-                enabledPatches.add(listItem.data(Qt.UserRole))
+            if listItem.checkState() == Qt.CheckState.Checked:
+                enabledPatches.add(listItem.data(Qt.ItemDataRole.UserRole))
         self.__saveEnabledPatches(enabledPatches)
 
     def __tr(self, str):
@@ -186,11 +186,11 @@ class FNISPatches(mobase.IPluginTool):
 
     def __getModDirectory(self):
         modDirectory = None
-        modList = self.__organizer.modsSortedByProfilePriority()
+        modList = self.__organizer.modList().allModsByProfilePriority()
         # Get the first managed mod so we can access the mods directory.
         for mod in modList:
             if (self.__organizer.modList().state(mod) & 0x2) != 0:
-                modDirectory = pathlib.Path(self.__organizer.getMod(mod).absolutePath()).parent
+                modDirectory = pathlib.Path(self.__organizer.modList().getMod(mod).absolutePath()).parent
                 break
         return modDirectory
 

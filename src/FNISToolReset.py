@@ -1,3 +1,13 @@
+import os
+import sys
+
+from FNISTool import FNISTool
+from PyQt6.QtCore import QFileInfo, QCoreApplication
+from PyQt6.QtGui import QFileSystemModel, QIcon
+from PyQt6.QtWidgets import QMessageBox
+
+import mobase
+
 class FNISToolReset(mobase.IPluginTool):
     def __init__(self):
         super(FNISToolReset, self).__init__()
@@ -52,7 +62,7 @@ class FNISToolReset(mobase.IPluginTool):
 
     def display(self):
         result = QMessageBox.question(self.__parentWidget, self.__tr("Reset settings?"), self.__tr("Would you like to reset the options that pop up when you first ran \"{}\"?").format(self.__mainToolName()))
-        if (result == QMessageBox.Yes):
+        if result == QMessageBox.StandardButton.Yes:
             self.__organizer.setPluginSetting(self.__mainToolName(), "initialised", False)
 
     def __tr(self, str):
