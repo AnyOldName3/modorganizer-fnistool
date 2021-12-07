@@ -22,13 +22,13 @@ class FNISToolReset(mobase.IPluginTool):
         return "FNIS Integration Tool Reset"
 
     def localizedName(self):
-        return self.__tr("FNIS Integration Tool Reset")
+        return self.tr("FNIS Integration Tool Reset")
 
     def author(self):
         return "LostDragonist"
 
     def description(self):
-        return self.__tr("Provides an easier way to reset the FNIS integration tool settings when needed.")
+        return self.tr("Provides an easier way to reset the FNIS integration tool settings when needed.")
 
     def version(self):
         return mobase.VersionInfo(1, 0, 0, 0)
@@ -40,7 +40,7 @@ class FNISToolReset(mobase.IPluginTool):
         return []
 
     def displayName(self):
-        return self.__tr("FNIS/Reset FNIS Settings")
+        return self.tr("FNIS/Reset FNIS Settings")
 
     def tooltip(self):
         return self.description()
@@ -61,11 +61,11 @@ class FNISToolReset(mobase.IPluginTool):
         self.__parentWidget = widget
 
     def display(self):
-        result = QMessageBox.question(self.__parentWidget, self.__tr("Reset settings?"), self.__tr("Would you like to reset the options that pop up when you first ran \"{}\"?").format(self.__mainToolName()))
+        result = QMessageBox.question(self.__parentWidget, self.tr("Reset settings?"), self.tr("Would you like to reset the options that pop up when you first ran \"{}\"?").format(self.__mainToolName()))
         if result == QMessageBox.StandardButton.Yes:
             self.__organizer.setPluginSetting(self.__mainToolName(), "initialised", False)
 
-    def __tr(self, str):
+    def tr(self, str):
         return QCoreApplication.translate("FNISToolReset", str)
 
     @staticmethod

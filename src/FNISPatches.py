@@ -70,8 +70,8 @@ class FNISPatches(mobase.IPluginTool):
     def init(self, organizer):
         self.__organizer = organizer
         if sys.version_info < (3, 0):
-            qCritical(self.__tr("FNISPatches plugin requires a Python 3 interpreter, but is running on a Python 2 interpreter."))
-            QMessageBox.critical(self.__parentWidget, self.__tr("Incompatible Python version."), self.__tr("This version of the FNIS Patches plugin requires a Python 3 interpreter, but Mod Organizer has provided a Python 2 interpreter. You should check for an updated version, including in the Mod Organizer 2 Development Discord Server."))
+            qCritical(self.tr("FNISPatches plugin requires a Python 3 interpreter, but is running on a Python 2 interpreter."))
+            QMessageBox.critical(self.__parentWidget, self.tr("Incompatible Python version."), self.tr("This version of the FNIS Patches plugin requires a Python 3 interpreter, but Mod Organizer has provided a Python 2 interpreter. You should check for an updated version, including in the Mod Organizer 2 Development Discord Server."))
             return False
         return True
 
@@ -79,13 +79,13 @@ class FNISPatches(mobase.IPluginTool):
         return "FNIS Patches Tool"
 
     def localizedName(self):
-        return self.__tr("FNIS Patches Tool")
+        return self.tr("FNIS Patches Tool")
 
     def author(self):
         return "AnyOldName3"
 
     def description(self):
-        return self.__tr("Configures the patches which FNIS applies to the game.")
+        return self.tr("Configures the patches which FNIS applies to the game.")
 
     def version(self):
         return mobase.VersionInfo(1, 0, 1, mobase.ReleaseType.final)
@@ -97,10 +97,10 @@ class FNISPatches(mobase.IPluginTool):
         return []
 
     def displayName(self):
-        return self.__tr("FNIS/Configure FNIS Patches")
+        return self.tr("FNIS/Configure FNIS Patches")
 
     def tooltip(self):
-        return self.__tr("Configures the patches which FNIS applies to the game.")
+        return self.tr("Configures the patches which FNIS applies to the game.")
 
     def icon(self):
         fnisPath = self.__organizer.pluginSetting(self.__mainToolName(), "fnis-path")
@@ -127,9 +127,9 @@ class FNISPatches(mobase.IPluginTool):
         availablePatches = self.__loadAvailablePatches()
 
         dialog = QDialog(self.__parentWidget)
-        dialog.setWindowTitle(self.__tr("Select Patches"))
+        dialog.setWindowTitle(self.tr("Select Patches"))
 
-        label = QLabel(self.__tr("Note: Some patches may be automatically enabled or disabled by Fore's New Idles in Skyrim, so don't be surprised if its list differs from this one."))
+        label = QLabel(self.tr("Note: Some patches may be automatically enabled or disabled by Fore's New Idles in Skyrim, so don't be surprised if its list differs from this one."))
         label.setWordWrap(True)
 
         listWidget = ExpandingQListWidget()
@@ -164,7 +164,7 @@ class FNISPatches(mobase.IPluginTool):
                 enabledPatches.add(listItem.data(Qt.ItemDataRole.UserRole))
         self.__saveEnabledPatches(enabledPatches)
 
-    def __tr(self, str):
+    def tr(self, str):
         return QCoreApplication.translate("FNISPatches", str)
 
     @staticmethod
@@ -180,7 +180,7 @@ class FNISPatches(mobase.IPluginTool):
         inGoodLocation = self.__withinDirectory(pathlibPath, modDirectory)
         inGoodLocation |= self.__withinDirectory(pathlibPath, gameDataDirectory)
         if not pathlibPath.is_file() or not inGoodLocation:
-            QMessageBox.information(self.__parentWidget, self.__tr("Unable to find FNIS"), self.__tr("Fore's New Idles in Skyrim can't be found using the location saved in Mod Organizer's settings. Please run the main FNIS integration tool before using this one."))
+            QMessageBox.information(self.__parentWidget, self.tr("Unable to find FNIS"), self.tr("Fore's New Idles in Skyrim can't be found using the location saved in Mod Organizer's settings. Please run the main FNIS integration tool before using this one."))
             return None
         return savedPath
 
